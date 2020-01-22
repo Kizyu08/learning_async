@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace learning_async
 {
@@ -9,21 +11,37 @@ namespace learning_async
         {
             // Stopwatchクラス生成
             var sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
 
-            //Console.WriteLine("Hello World!");
-            int i = Calculate();
+            Task<int> task = Task.Run(() => Calculate());
+            var timer1 = new System.Timers.Timer(500);
 
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds);
+            int cnt = 0;
+
+            // タイマーの処理
+            timer1.Elapsed += (sender, e) =>
+            {
+                if(task.Status == TaskStatus.RanToCompletion)
+                {
+                    int res = task.Result;
+                    Console.WriteLine(res);
+                    task.Start();
+                }
+                cnt++;
+                Console.WriteLine(cnt);
+            };
+
+            timer1.Start();
+            Console.ReadKey();
         }
 
         static int Calculate()
         {
+            Console.WriteLine("task start");
             int total = 0;
             for (int i = 1; i <= 100; ++i)
                 total += i;
             Thread.Sleep(2500); // 何か重い処理をしている...
+            Console.WriteLine("task finish");
             return total;
         }
     }
